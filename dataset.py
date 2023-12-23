@@ -11,11 +11,23 @@ class MyDataset(Dataset):
                  max_length=128,
                  tokenizer=None,
                  word=False):
+        """
+        MyDataset类的构造函数
+        
+        参数：
+            path: str，数据集路径
+            dictionary: dict, 可选，用于处理CNN、RNN和Transformer模型的字典
+            max_length: int, 可选，最大文本长度
+            tokenizer: object, 可选，用于处理BERT模型的tokenizer
+            word: bool, 是否保留单词的原始顺序
+        
+        返回：
+            无
+        """
         super(MyDataset, self).__init__()
         self.data = pd.read_csv(path, sep='\t').dropna()
 
         self.data = self.data[:100]
-
 
         with open(root_path + '/data/label2id.json', 'r') as f:
             self.label2id = json.load(f)
@@ -33,6 +45,15 @@ class MyDataset(Dataset):
         self.max_length = max_length
 
     def __getitem__(self, i):
+        """
+        MyDataset类的索引方法
+        
+        参数：
+            i: int，索引
+        
+        返回：
+            output: dict，包含token_ids、attention_mask、token_type_ids和labels的字典
+        """
         data = self.data.iloc[i]
         text = data['text']
         labels = int(data['category_id'])
@@ -40,12 +61,12 @@ class MyDataset(Dataset):
         if 'bert' in self.model_name:
             # 如果是bert类模型， 使用tokenizer 的encode_plus方法处理数据
             text_dict = self.tokenizer.encode_plus(
-                text,  # Sentence to encode.
-                add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
-                max_length=self.max_length,  # Pad & truncate all sentences.
+                text,  # 句子编码
+                add_special_tokens=True,  # 添加特殊标记Add '[CLS]' and '[SEP]'
+                max_length=self.max_length,  # 补充或截断所有句子
                 ad_to_max_length=True,
-                return_attention_mask=True,  # Construct attn. masks.
-                #                                                    return_tensors='pt',     # Return pytorch tensors.
+                return_attention_mask=True,  # 构建注意力掩码attn. masks.
+                return_tensors='pt',     # 返回pytorch张量
             )
             input_ids, attention_mask, token_type_ids = text_dict[
                 'input_ids'], text_dict['attention_mask'], text_dict[
@@ -69,11 +90,25 @@ class MyDataset(Dataset):
         return output
 
     def __len__(self):
+        """
+        MyDataset类的长度方法
+        
+        返回：
+            int，数据集的长度
+        """
         return self.data.shape[0]
 
-
-
 def collate_fn(batch):
+    """
+    collate_fn函数用于将batch中的样本进行整理以便输入模型进行训练
+    
+    参数：
+        batch: list，包含多个样本的列表
+        
+    返回：
+        output: dict，包含整理后的样本的字典
+    """
+    # 函数实现省略
     """
     动态padding， batch为一部分sample
     """
